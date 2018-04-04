@@ -1,0 +1,14 @@
+#!/bin/sh
+#PBS -N MPIMMM 
+#PBS -m abe
+#PBS -j oe
+#PBS -k n
+#PBS -l nodes=4:ithaca:ppn=2,walltime=8:00:00
+#PBS -V
+# 
+setenv OMPI_MCA_btl self,tcp
+cat $PBS_NODEFILE
+cd /home/pounds/matrixtest
+n=`wc -l < $PBS_NODEFILE`
+n=`expr $n / 2`
+mpirun -np $n --hostfile $PBS_NODEFILE --pernode mpimmm 
