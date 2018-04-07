@@ -12,3 +12,4 @@ cd /home/pounds/matrixtest
 n=`wc -l < $PBS_NODEFILE`
 n=`expr $n / 2`
 mpirun -np $n --hostfile $PBS_NODEFILE --pernode mpimmm 
+#mpirun -d --gmca btl_tcp_if_include "192.168.1.0/8"  -np 3 -H frodo,pippin,merry mpimmm
