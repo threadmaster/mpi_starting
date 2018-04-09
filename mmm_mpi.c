@@ -4,15 +4,19 @@
 #include <mpi.h>
 
 
-#define MAT_DIM  100 
+#define MAT_DIM  10 
+
+// Put rank and size in global space
+int rank, size;
+int MASTER;
 
 //void mmm ( int N, double *A, double *B, double *C );
 
 void mmm( int N, double* matA, double* matB, double* matC ){
 
-    int rank, size;
     int tag = 0;;
-    int MASTER = 0;
+    extern int rank, size; 
+    extern int MASTER;
 
     MPI_Status *status;
 
@@ -130,7 +134,7 @@ void mmm( int N, double* matA, double* matB, double* matC ){
     else {  // Non-Master Processes //
 
         int ONE = 1;
-        int *matDim = malloc(sizeof(int));
+        int *matDim = (int *) malloc(sizeof(int));
 
         puts("In subprocess.");
         // Now receive matrix A by getting its size and allocating a buffer
@@ -225,14 +229,16 @@ int main(int argc, char** argv){
 
     double *A, *B, *C;
 
+    extern int MASTER;
+    extern int rank, size;
     int DIM = MAT_DIM;
     int MAT_SIZE = MAT_DIM*MAT_DIM;
-    int rank;
 
     A = (double*) calloc(MAT_SIZE, sizeof(double));
     B = (double*) calloc(MAT_SIZE, sizeof(double));
     C = (double*) calloc(MAT_SIZE, sizeof(double));
 
+    MASTER = 0;
 
     //puts("Malloc worked");
 
@@ -250,9 +256,13 @@ int main(int argc, char** argv){
 */
     for (int i=0; i<DIM; i++)
         for (int j=0; j<DIM; j++) {
-            *(A+i*DIM+j) = 1.0 / sqrt( (double) DIM ); 
-            *(B+i*DIM+j) = 1.0 / sqrt( (double) DIM ); 
+            *(A+i*DIM+j) = 1.0 / (double) DIM;
+            if ( i == j ) 
+                *(B+i*DIM+j) = 1.0;
+            else
+                *(B+i*DIM+j) = 0.0;
         }
+
     /* 
        for (int i=0; i<DIM; i++) {
        for (int j=0; j<DIM; j++) 
@@ -266,44 +276,46 @@ int main(int argc, char** argv){
 
     mmm( DIM, A, B, C );
 
-    if (rank == 0) {
-        printf("Matrix A\n", "");
-        for (int i=0; i<DIM; i++) {
-            for (int j=0; j<DIM; j++) 
-                printf("%f ", *(A+i*DIM+j));
-            printf("\n");
-        }       
+    if (rank == MASTER) {
 
-        printf("Matrix B\n", "");
-        for (int i=0; i<DIM; i++) {
-            for (int j=0; j<DIM; j++) 
-                printf("%f ", *(B+i*DIM+j));
-            printf("\n");
-        }       
+    printf("Matrix A\n", "");
+    for (int i=0; i<DIM; i++) {
+        for (int j=0; j<DIM; j++) 
+            printf("%f ", *(A+i*DIM+j));
+        printf("\n");
+    }       
 
-        printf("Product Matrix\n", "");
-        for (int i=0; i<DIM; i++) {
-            for (int j=0; j<DIM; j++) 
-                printf("%f ", *(C+i*DIM+j));
-            printf("\n");
-        }       
+    printf("Matrix B\n", "");
+    for (int i=0; i<DIM; i++) {
+        for (int j=0; j<DIM; j++) 
+            printf("%f ", *(B+i*DIM+j));
+        printf("\n");
+    }       
 
-        /* Compute trace of Matrix */
+    printf("Product Matrix\n", "");
+    for (int i=0; i<DIM; i++) {
+        for (int j=0; j<DIM; j++) 
+            printf("P %f ", *(C+i*DIM+j));
+        printf("\n");
+    }       
 
-        double trace = 1.0;
-        for (int i=0; i<DIM; i++) 
-            for (int j=0; j<DIM; j++) 
-                trace = trace * *(C+i*DIM+j);
+    /* Compute trace of Matrix */
 
-        printf("Trace of matrix is %f\n", trace);
-        printf("About to free A, B, and C\n");
-        printf("Program Complete\n");
+    double trace = 0.0;
+    for (int i=0; i<DIM; i++) 
+        for (int j=0; j<DIM; j++) 
+            trace = trace + *(C+i*DIM+j);
 
-    }
+    printf("Trace of matrix is %f\n", trace);
+    printf("About to free A, B, and C\n");
+    printf("Program Complete\n");
 
-    MPI_Finalize();
+
     free(A);
     free(B);
     free(C);
+
+    }
+    MPI_Finalize();
 
 } 
