@@ -20,7 +20,7 @@
  */
 
 
-#define MAT_DIM  1000 
+#define MAT_DIM  3000 
 
 // Put rank and size in global space
 int rank, size;
@@ -63,25 +63,23 @@ void mmm( int N, double* matA, double* matB, double* matC ){
         for(int i=0; i < N; i++)
             *(todo+i%size) = *(todo+i%size) + 1;
 
-#ifdef DEBUG
         for(int i=0; i < size; i++)
-            printf("Process %d will handle %d columns of B\n", i, *(todo+i));
-#endif
+           printf("Process %d will handle %d columns of B\n", i, *(todo+i));
+
         /* at this point we know how many columns of B each
          * process is responsible for -- now use that info to 
          * set up the starting and stopping arrays  */
 
         *(start) = 0;
-        *(stop) = *(todo) - 1; 
+        *(stop) = *(todo+0) - 1; 
         for (int i=1; i<size; i++) {
             *(start+i) = *(stop+i-1) + 1;
             *(stop+i)  = *(start+i)  + *(todo+i) - 1;
         }
 
-#ifdef DEBUG
         for (int i=0; i<size; i++) 
-            printf("Process info: %d %d %d\n", *(todo+i), *(start+i), *(stop+i));
-#endif
+            printf("Process %d info: %d columns, starting at %d and stopping at %d\n",
+                  i, *(todo+i), *(start+i), *(stop+i));
 
         // Notice -- element 0 is left for the master process
 
@@ -90,9 +88,7 @@ void mmm( int N, double* matA, double* matB, double* matC ){
             // send matrix A to everybody 
             int ONE = 1;
             MPI_Send(&N, ONE,  MPI_INT, i, tag, MPI_COMM_WORLD); 
-            printf("just sent size %d to process %d\n", N, i);
             MPI_Send(matA, N*N, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
-            printf("just matA to process %d\n",  i);
 
             // Send the starting and stopping arrays to every process
             MPI_Send(start, size, MPI_INT, i, tag, MPI_COMM_WORLD);
@@ -298,13 +294,10 @@ int main(int argc, char** argv){
 
     printf("Dimension of matrix is %d\n", DIM);
     printf("Sum of diagonal is %f\n", trace);
-    printf("About to free A, B, and C\n");
 
     free(A);
     free(B);
     free(C);
-
-    printf("Program Complete\n");
 
     }
     MPI_Finalize();
