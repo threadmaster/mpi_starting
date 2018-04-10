@@ -4,9 +4,18 @@
 #include <mpi.h>
 #define MASTER 0
 
+/* Simplified MPI Matrix Multiplication
+ * Andrew J. Pounds, Ph.D.
+ * Spring 2018
+ *
+/* Note -- in this version we are simpliying things by sending every system
+ * complete copies of matrices A and B and asking each system to work over
+ * only certain columns of B.  
+ */
+
 typedef struct limits {
-     int start;
-     int stop;
+    int start;
+    int stop;
 } LIMITS;
 
 int main(int argc, char** argv)
