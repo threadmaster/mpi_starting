@@ -63,8 +63,6 @@ void mmm( int N, double* matA, double* matB, double* matC ){
         for(int i=0; i < N; i++)
             *(todo+i%size) = *(todo+i%size) + 1;
 
-        for(int i=0; i < size; i++)
-           printf("Process %d will handle %d columns of B\n", i, *(todo+i));
 
         /* at this point we know how many columns of B each
          * process is responsible for -- now use that info to 
@@ -76,10 +74,6 @@ void mmm( int N, double* matA, double* matB, double* matC ){
             *(start+i) = *(stop+i-1) + 1;
             *(stop+i)  = *(start+i)  + *(todo+i) - 1;
         }
-
-        for (int i=0; i<size; i++) 
-            printf("Process %d info: %d columns, starting at %d and stopping at %d\n",
-                  i, *(todo+i), *(start+i), *(stop+i));
 
         // Notice -- element 0 is left for the master process
 
