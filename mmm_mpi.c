@@ -20,17 +20,18 @@
  */
 
 
-#define MAT_DIM  10 
-#define MASTER 0
+#define MAT_DIM  1000 
 
 // Put rank and size in global space
 int rank, size;
+int MASTER;
 
 // Define the main MPI function to be called
 void mmm( int N, double* matA, double* matB, double* matC ){
 
-    int tag = 0;;
+    int tag = 0;
     extern int rank, size; 
+    extern int MASTER;
     MPI_Status *status;
 
     // get the size of the parallel system and my rank
@@ -66,7 +67,7 @@ void mmm( int N, double* matA, double* matB, double* matC ){
         for(int i=0; i < size; i++)
             printf("Process %d will handle %d columns of B\n", i, *(todo+i));
 #endif
-        /* at this point it is know how many columns of B each
+        /* at this point we know how many columns of B each
          * process is responsible for -- now use that info to 
          * set up the starting and stopping arrays  */
 
@@ -89,7 +90,9 @@ void mmm( int N, double* matA, double* matB, double* matC ){
             // send matrix A to everybody 
             int ONE = 1;
             MPI_Send(&N, ONE,  MPI_INT, i, tag, MPI_COMM_WORLD); 
+            printf("just sent size %d to process %d\n", N, i);
             MPI_Send(matA, N*N, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
+            printf("just matA to process %d\n",  i);
 
             // Send the starting and stopping arrays to every process
             MPI_Send(start, size, MPI_INT, i, tag, MPI_COMM_WORLD);
@@ -143,9 +146,6 @@ void mmm( int N, double* matA, double* matB, double* matC ){
             int bufIndex = 0; 
             for (int j=*(start+i); j<=*(stop+i); j++) 
                 for (int k=0; k<N; k++) { 
-#ifdef DEBUG
-                         printf ("The value of buf %d is %f\n", bufIndex, *(buf+bufIndex));
-#endif
                     *(matC+k*N+j) = *(buf+bufIndex);
                     bufIndex++;
                 } 
@@ -164,20 +164,19 @@ void mmm( int N, double* matA, double* matB, double* matC ){
     else {  // Non-Master Processes //
 
         int ONE = 1;
-        int *matDim = (int *) malloc(sizeof(int));
+        int matDim;
 
         // First receive Matrix A
 
         // Step one -- get the matrix dimension 
-        MPI_Recv(matDim, ONE, MPI_INT, MASTER, tag, MPI_COMM_WORLD, status);
+        MPI_Recv(&matDim, ONE, MPI_INT, MASTER, tag, MPI_COMM_WORLD, status);
 
-        int NDIM = *matDim;
+        int NDIM = matDim;
 
         // Step two -- create a buffer to receive the matrix 
         double *subA;
         subA = (double*) calloc(NDIM*NDIM, sizeof(double));
         MPI_Recv(subA, NDIM*NDIM, MPI_DOUBLE, MASTER, tag, MPI_COMM_WORLD, status );
-
 
         // Now start setting up to receive the components of B
         int *start;
@@ -242,6 +241,7 @@ int main(int argc, char** argv){
     double *A, *B, *C;
 
     extern int rank, size;
+    extern int MASTER; 
     int DIM = MAT_DIM;
     int MAT_SIZE = MAT_DIM*MAT_DIM;
 
@@ -257,7 +257,8 @@ int main(int argc, char** argv){
             *(B+i*DIM+j) = 1.0L / (double) DIM;
         }
 
-    //puts("Driver function initiating MPI");
+    // Set the ID of MASTER and start MPI
+    MASTER = 0;
     MPI_Init(&argc, &argv);
 
     mmm( DIM, A, B, C );
@@ -265,7 +266,7 @@ int main(int argc, char** argv){
     // NOTE -- rank will not be defined until MPI_Comm_rank is called in mmm 
     if (rank == MASTER) {
 
-#ifdef DEBUG
+#ifdef DEBUGPRINT
     printf("Matrix A\n", "");
     for (int i=0; i<DIM; i++) {
         for (int j=0; j<DIM; j++) 
