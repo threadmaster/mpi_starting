@@ -3,13 +3,17 @@
 #PBS -m abe
 #PBS -j oe
 #PBS -k n
-#PBS -l nodes=4:ithaca:ppn=2,walltime=8:00:00
-#PBS -V
+#PBS -l nodes=2:ithaca:ppn=2,walltime=8:00:00
+##PBS -V
 # 
-setenv OMPI_MCA_btl self,tcp
 cat $PBS_NODEFILE
-cd /home/pounds/matrixtest
+cd ~pounds/mpi_start 
+#recompile on the node to make sure no issues with the compiler on hammer
+mpicc -std=c99 -O2 mmm_mpi.c -o mmm_mpi -lm
 n=`wc -l < $PBS_NODEFILE`
 n=`expr $n / 2`
-mpirun -np $n --hostfile $PBS_NODEFILE --pernode mpimmm 
+NETWORK="--gmca btl_tcp_if_include """10.200.4.0/8""""
+HOSTS="--map-by ppr:1:node --hostfile $PBS_NODEFILE"
+#mpirun -np $n $NETWORK $HOSTS  mmm_mpi 
+mpirun -np $n $NETWORK $HOSTS  mmm_mpi 
 #mpirun -d --gmca btl_tcp_if_include "10.200.4.0/8"  -np 3 -H csc204com02,csc204com03,csc204com04 
