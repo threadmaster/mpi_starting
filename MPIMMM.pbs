@@ -4,7 +4,6 @@
 #PBS -j oe
 #PBS -k n
 #PBS -l nodes=2:ithaca:ppn=2,walltime=8:00:00
-##PBS -V
 # 
 cat $PBS_NODEFILE
 cd ~pounds/mpi_start 
@@ -14,6 +13,4 @@ n=`wc -l < $PBS_NODEFILE`
 n=`expr $n / 2`
 NETWORK="--gmca btl_tcp_if_include """10.200.4.0/8""""
 HOSTS="--map-by ppr:1:node --hostfile $PBS_NODEFILE"
-#mpirun -np $n $NETWORK $HOSTS  mmm_mpi 
 mpirun -np $n $NETWORK $HOSTS  mmm_mpi 
-#mpirun -d --gmca btl_tcp_if_include "10.200.4.0/8"  -np 3 -H csc204com02,csc204com03,csc204com04 
