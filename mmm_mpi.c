@@ -20,7 +20,7 @@
  */
 
 
-#define MAT_DIM  3000 
+#define MAT_DIM  8000 
 
 // Put rank and size in global space
 int rank, size;
@@ -234,6 +234,7 @@ int main(int argc, char** argv){
     extern int MASTER; 
     int DIM = MAT_DIM;
     int MAT_SIZE = MAT_DIM*MAT_DIM;
+    double t1, t2;
 
     A = (double*) calloc(MAT_SIZE, sizeof(double));
     B = (double*) calloc(MAT_SIZE, sizeof(double));
@@ -250,6 +251,8 @@ int main(int argc, char** argv){
     // Set the ID of MASTER and start MPI
     MASTER = 0;
     MPI_Init(&argc, &argv);
+   
+    t1 = MPI_Wtime();
 
     mmm( DIM, A, B, C );
 
@@ -279,6 +282,8 @@ int main(int argc, char** argv){
     }       
 #endif
 
+    t2 = MPI_Wtime();
+
     /* Compute trace of Matrix */
 
     double trace = 0.0;
@@ -288,6 +293,7 @@ int main(int argc, char** argv){
 
     printf("Dimension of matrix is %d\n", DIM);
     printf("Sum of diagonal is %f\n", trace);
+    printf("Elapsed time:  %f seconds\n", t2-t1);
 
     free(A);
     free(B);
