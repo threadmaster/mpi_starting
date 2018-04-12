@@ -22,6 +22,7 @@ int main(int argc, char** argv)
 {
     int i, j, N, procs;
     int start, finish;
+    double t1, t2;
     N = 2000;
 
     double* A = (double*) malloc(N*N*sizeof(double));
@@ -65,6 +66,7 @@ int main(int argc, char** argv)
     {
         int i, j, k;
 
+        t1 = MPI_Wtime();
         // Fill the matrices
 
         for(i=0; i<N; i++)
@@ -137,11 +139,13 @@ int main(int argc, char** argv)
             free(tmp);
         }
 
+        t2 = MPI_Wtime();
 
         double trace=0.0;
         for (i=0;i<dim;i++)	trace += C[i*dim+i];
 
         printf("DIMENSION : %d   TRACE %15.13f\n", dim, trace);
+        printf("Elapsed time: %f seconds\n", t2-t1);
 
     }
 
