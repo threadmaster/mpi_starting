@@ -20,7 +20,7 @@
  */
 
 
-#define MAT_DIM  8000 
+#define MAT_DIM  2000 
 
 // Put rank and size in global space
 int rank, size;
