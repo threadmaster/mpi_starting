@@ -3,7 +3,7 @@
 #PBS -m abe
 #PBS -j oe
 #PBS -k n
-#PBS -l nodes=2:lab218:ppn=10,walltime=8:00:00
+#PBS -l nodes=4:lab218:ppn=10,walltime=8:00:00
 # 
 cat $PBS_NODEFILE
 cd ~pounds/mpi_starting 
