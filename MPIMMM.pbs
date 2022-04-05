@@ -8,7 +8,7 @@
 cat $PBS_NODEFILE
 cd ~pounds/mpi_starting 
 #recompile on the node to make sure no issues with the compiler on hammer
-mpicc -std=c99 -O2 mmm_mpi.c -o mmm_mpi -lm
+mpicc -O2 mmm_mpi.c -o mmm_mpi -lm
 n=`wc -l < $PBS_NODEFILE`
 n=`expr $n / 10`
 NETWORK="--gmca btl_tcp_if_include """10.30.165.0/8""""
